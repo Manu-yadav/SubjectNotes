@@ -1,0 +1,25 @@
+<androidx.appcompat.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorPrimary"
+    android:gravity="top"
+    android:minHeight="?attr/actionBarSize"
+    app:titleMarginTop="13dp"
+    app:titleTextAppearance="@style/Toolbar.TitleText">
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:dropDownWidth="120dp"
+        android:popupBackground="@color/colorPrimaryDark"
+        android:visibility="gone" />
+
+    <!--
+        android:background="?attr/selectableItemBackgroundBorderless"
+    -->
+</androidx.appcompat.widget.Toolbar>
+
