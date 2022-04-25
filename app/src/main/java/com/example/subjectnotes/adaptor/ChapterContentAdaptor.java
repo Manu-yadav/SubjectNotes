@@ -90,6 +90,19 @@ public class ChapterContentAdaptor extends RecyclerView.Adapter<ChapterContentAd
                         AppDialog.alertDialogForChapterContentDelete(mContext, mChapterList.get(getAbsoluteAdapterPosition()), "Delete!!");
                 }
             });
+            ((ImageView) itemView.findViewById(R.id.iv_share)).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Uri photoURI = FileProvider.getUriForFile(mContext,
+                            mContext.getApplicationContext().getPackageName() + ".provider",
+                            mChapterList.get(getAbsoluteAdapterPosition()).getmImageFile());
+                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                    shareIntent.setType("application/pdf");
+                    shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    shareIntent.putExtra(Intent.EXTRA_STREAM, photoURI );
+                    mContext.startActivity(Intent.createChooser(shareIntent, "Share it"));
+                }
+            });
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
