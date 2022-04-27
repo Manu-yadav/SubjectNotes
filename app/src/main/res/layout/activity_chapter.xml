@@ -28,10 +28,10 @@
         android:fontFamily="monospace"
         android:gravity="center"
         android:lineSpacingExtra="5dp"
-        android:visibility="visible"
         android:text="No Content Available."
         android:textColor="@color/colorAccent"
-        android:textSize="18dp" />
+        android:textSize="18dp"
+        android:visibility="gone" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_chapter"

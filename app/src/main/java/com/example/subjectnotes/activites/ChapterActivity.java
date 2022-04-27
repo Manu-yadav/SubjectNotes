@@ -414,6 +414,7 @@ public class ChapterActivity extends BaseActivity {
             chapterModel.setParentFile(mChapterFile);
             mContentList.add(chapterModel);
             mCustomAdaptor.notifyDataSetChanged();
+            mNoContentFoundTV.setVisibility(View.GONE);
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Something wrong: " + e.toString(), Toast.LENGTH_LONG).show();

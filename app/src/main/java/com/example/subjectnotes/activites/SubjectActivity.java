@@ -1,11 +1,14 @@
 package com.example.subjectnotes.activites;
 
+
 import android.content.Intent;
 import android.graphics.PorterDuff;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -14,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,8 +29,14 @@ import com.example.subjectnotes.models.SubjectModel;
 import com.example.subjectnotes.utils.Constants;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class SubjectActivity extends BaseActivity {
 
@@ -44,6 +54,7 @@ public class SubjectActivity extends BaseActivity {
     private ArrayList<SubjectModel> mSpinnerDataList;
     private SpinnerAdaptor mSpinnerAdaptor;
     private SubjectModel mSubjectModel;
+    private File mTempZipFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +79,15 @@ public class SubjectActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        Toast.makeText(this,"OnResume called", Toast.LENGTH_SHORT).show();
         mChapSpinner.setVisibility(View.VISIBLE);
+        deleteZipFileIfExist();
+    }
+
+    private void deleteZipFileIfExist() {
+        if (mTempZipFile != null) {
+            mTempZipFile.delete();
+        }
     }
 
     @Override
@@ -249,4 +268,63 @@ public class SubjectActivity extends BaseActivity {
         //call delete to delete files and empty directory
         file.delete();
     }
+
+    public boolean zip(File[] _files, String zipFileName) {
+        boolean createdZip = false;
+        int BUFFER_SIZE = 6 * 1024;
+        try {
+            BufferedInputStream origin = null;
+            FileOutputStream dest = new FileOutputStream(zipFileName);
+            ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
+                    dest));
+            byte data[] = new byte[BUFFER_SIZE];
+
+            for (int i = 0; i < _files.length; i++) {
+                Log.e("Compress", "Adding: " + _files[i]);
+                FileInputStream fi = new FileInputStream(_files[i]);
+                origin = new BufferedInputStream(fi, BUFFER_SIZE);
+
+                ZipEntry entry = new ZipEntry(_files[i].getName().substring(_files[i].getName().lastIndexOf("/") + 1));
+                out.putNextEntry(entry);
+                int count;
+
+                while ((count = origin.read(data, 0, BUFFER_SIZE)) != -1) {
+                    out.write(data, 0, count);
+                }
+                origin.close();
+            }
+
+            out.close();
+            createdZip = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            createdZip = false;
+        }
+        return createdZip;
+    }
+
+    public void shareSubjectFolder(SubjectModel subjectModel) {
+        File[] ChaptersInSubject = subjectModel.getFile().listFiles();
+/*        String backupDBPath = subjectModel.getFile() + "/Mobikul-Pos-db-backup";
+        final File backupDBFolder = new File(backupDBPath);
+        backupDBFolder.mkdirs();
+        final File backupDB = new File(backupDBFolder, "/db_pos.db");*/
+        ;
+
+        if (zip(ChaptersInSubject, subjectModel.getFile().getAbsolutePath() + ".zip")) {
+            Toast.makeText(this, subjectModel.getFile().getName() + ".zip created", Toast.LENGTH_LONG).show();
+            mTempZipFile = new File(subjectModel.getFile().getAbsolutePath() + ".zip");
+            Uri photoURI = FileProvider.getUriForFile(this,
+                    getApplicationContext().getPackageName() + ".provider",
+                    mTempZipFile);
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_STREAM, photoURI);
+            sendIntent.setType("application/zip");
+            startActivity(sendIntent);
+        } else {
+            Toast.makeText(this, ".Zip creation failed !!", Toast.LENGTH_LONG).show();
+        }
+    }
+
 }

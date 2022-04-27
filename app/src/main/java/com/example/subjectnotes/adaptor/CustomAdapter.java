@@ -20,6 +20,8 @@ import com.example.subjectnotes.utils.Constants;
 import com.example.subjectnotes.appDialog.AppDialog;
 import com.example.subjectnotes.models.SubjectModel;
 
+import org.bouncycastle.pqc.jcajce.provider.McEliece;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +46,11 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHold
     @Override
     public void onBindViewHolder(MyViewHolder holder, final int position) {
         holder.subjectName.setText(mSubjectListFiltered.get(position).getFileName());
+        if(mContext instanceof MainActivity){
+            holder.shareIV.setVisibility(View.GONE);
+        }else {
+            holder.shareIV.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -87,12 +94,24 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHold
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
+        private final ImageView shareIV;
         TextView subjectName;
 
         public MyViewHolder(View itemView) {
             super(itemView);
             // get the reference of item view's
             subjectName = (TextView) itemView.findViewById(R.id.tv_subject_name);
+            shareIV = (ImageView) itemView.findViewById(R.id.iv_share);
+            shareIV.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(mContext instanceof  MainActivity){
+
+                    }else {
+                        ((SubjectActivity) mContext).shareSubjectFolder(mSubjectList.get(getAbsoluteAdapterPosition()));
+                    }
+                }
+            });
             ((ImageView) itemView.findViewById(R.id.iv_delete)).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
