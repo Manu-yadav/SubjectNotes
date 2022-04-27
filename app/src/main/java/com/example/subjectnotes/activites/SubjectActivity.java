@@ -79,7 +79,6 @@ public class SubjectActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Toast.makeText(this,"OnResume called", Toast.LENGTH_SHORT).show();
         mChapSpinner.setVisibility(View.VISIBLE);
         deleteZipFileIfExist();
     }
@@ -145,8 +144,8 @@ public class SubjectActivity extends BaseActivity {
                                                View view, int position, long id) {
                         // It returns the clicked item.
                         String name = mSpinnerDataList.get(position).getFileName();
+                        mSubjectFile = mSpinnerDataList.get(position).getFile();
                         checkForAlreadyAddedChapter(mSpinnerDataList.get(position).getFile());
-                        Toast.makeText(SubjectActivity.this, name + " selected", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -175,7 +174,7 @@ public class SubjectActivity extends BaseActivity {
                 mSpinnerDataList.add(0, mSubjectModel);
                 mSpinnerAdaptor.notifyDataSetChanged();
             } else {
-                Toast.makeText(this, "ERROR: Wile adding spinner data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "ERROR: While adding spinner data", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -209,8 +208,6 @@ public class SubjectActivity extends BaseActivity {
         toolbar.setNavigationIcon(null);
         toolbar.setTitleTextColor(getResources().getColor(R.color.white));
         toolbar.setNavigationIcon(R.drawable.icon_back);
-        //toolbar.setTitleTextAppearance(this, R.style.proxima_nova_semibold);
-        //toolbar.setTitle(title);
     }
 
     @Override
@@ -293,7 +290,6 @@ public class SubjectActivity extends BaseActivity {
                 }
                 origin.close();
             }
-
             out.close();
             createdZip = true;
         } catch (Exception e) {
@@ -305,12 +301,6 @@ public class SubjectActivity extends BaseActivity {
 
     public void shareSubjectFolder(SubjectModel subjectModel) {
         File[] ChaptersInSubject = subjectModel.getFile().listFiles();
-/*        String backupDBPath = subjectModel.getFile() + "/Mobikul-Pos-db-backup";
-        final File backupDBFolder = new File(backupDBPath);
-        backupDBFolder.mkdirs();
-        final File backupDB = new File(backupDBFolder, "/db_pos.db");*/
-        ;
-
         if (zip(ChaptersInSubject, subjectModel.getFile().getAbsolutePath() + ".zip")) {
             Toast.makeText(this, subjectModel.getFile().getName() + ".zip created", Toast.LENGTH_LONG).show();
             mTempZipFile = new File(subjectModel.getFile().getAbsolutePath() + ".zip");
@@ -326,5 +316,4 @@ public class SubjectActivity extends BaseActivity {
             Toast.makeText(this, ".Zip creation failed !!", Toast.LENGTH_LONG).show();
         }
     }
-
 }
