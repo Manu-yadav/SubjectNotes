@@ -250,7 +250,7 @@ public class ChapterActivity extends BaseActivity {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), photoURI);
-                sendForCropper();
+                sendForCropper(photoURI);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -260,34 +260,25 @@ public class ChapterActivity extends BaseActivity {
                 Uri resultUri = result.getUri();
                 try {
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), resultUri);
-                    //getScaledBitmap(bitmap);
-                    createPdf( getScaledBitmap(bitmap));
+                    createPdf(getScaledBitmap(bitmap));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
             }
-        }/* else if (requestCode == REQUEST_CODE_CROPPER && resultCode == RESULT_OK) {
-            if (ScannerConstants.selectedImageBitmap != null) {
-                Bitmap finalImageBitmap = ScannerConstants.selectedImageBitmap;
-                // convertBitmapToPDF(finalImageBitmap);
-                createFileName(finalImageBitmap);
-            } else {
-                Toast.makeText(this, "Something wen't wrong.", Toast.LENGTH_LONG).show();
-            }
-
-        }*/ else if (requestCode == SELECT_PICTURE && resultCode == RESULT_OK) {
+        }else if (requestCode == SELECT_PICTURE && resultCode == RESULT_OK) {
             // Get the url of the image from data
             Uri selectedImageUri = data.getData();
-            if (null != selectedImageUri) {
+            sendForCropper(selectedImageUri);
+/*            if (null != selectedImageUri) {
                 try {
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
                     createFileName(bitmap);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
+            }*/
         }
     }
 
@@ -296,8 +287,8 @@ public class ChapterActivity extends BaseActivity {
        return Bitmap.createScaledBitmap(bitmap, 512, nh, true);
     }
 
-    private void sendForCropper() {
-        CropImage.activity(photoURI)
+    private void sendForCropper(Uri uri) {
+        CropImage.activity(uri)
                 .setGuidelines(CropImageView.Guidelines.ON)
                 .start(this);
     }
@@ -423,6 +414,7 @@ public class ChapterActivity extends BaseActivity {
             chapterModel.setParentFile(mChapterFile);
             mContentList.add(chapterModel);
             mCustomAdaptor.notifyDataSetChanged();
+            mNoContentFoundTV.setVisibility(View.GONE);
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Something wrong: " + e.toString(), Toast.LENGTH_LONG).show();
