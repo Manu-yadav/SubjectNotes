@@ -96,7 +96,8 @@ public class AppDialog {
         cam.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((ChapterActivity) activity).dispatchTakePictureIntent();
+                //((ChapterActivity) activity).dispatchTakePictureIntent();
+                ((ChapterActivity) activity).startScanner();
                 progressDialog.dismiss();
             }
         });
@@ -108,7 +109,14 @@ public class AppDialog {
                 progressDialog.dismiss();
             }
         });
-
+        TextView pdf = progressDialog.findViewById(R.id.tv_pdf);
+        pdf.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((ChapterActivity) activity).dispatchSelectPdfIntent();
+                progressDialog.dismiss();
+            }
+        });
 
         progressDialog.findViewById(R.id.tv_cancel).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -179,7 +187,7 @@ public class AppDialog {
         builder.setCancelable(false)
                 .setPositiveButton("DELETE", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                            ((ChapterActivity) context).deleteFile(chapterModel);
+                        ((ChapterActivity) context).deleteFile(chapterModel);
                     }
                 })
                 .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
@@ -192,6 +200,7 @@ public class AppDialog {
         AlertDialog alert = builder.create();
         alert.show();
     }
+
     public static void showSettingAlertDialog(final Context context) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setCancelable(false)

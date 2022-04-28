@@ -1,6 +1,7 @@
 package com.example.subjectnotes.activites;
 
 import android.app.ProgressDialog;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -13,8 +14,10 @@ import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
@@ -37,6 +40,9 @@ import com.example.subjectnotes.models.ChapterModel;
 import com.example.subjectnotes.models.SubjectModel;
 import com.example.subjectnotes.utils.Constants;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.scanlibrary.ScanActivity;
+import com.scanlibrary.ScanConstants;
+import com.shockwave.pdfium.PdfiumCore;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
@@ -65,6 +71,7 @@ public class ChapterActivity extends BaseActivity {
     // constant to compare
     // the activity result code
     int SELECT_PICTURE = 200;
+    int SELECT_PDF = 300;
     private Spinner mChapSpinner;
     private SpinnerAdaptor mSpinnerAdaptor;
     private ArrayList<SubjectModel> mSpinnerDataList;
@@ -204,7 +211,7 @@ public class ChapterActivity extends BaseActivity {
             if (subjects.length > 0) {
                 mNoContentFoundTV.setVisibility(View.GONE);
                 for (int i = 0; i < subjects.length; i++) {
-                    if(!subjects[i].getName().equals("merged_file.pdf")){
+                    if (!subjects[i].getName().equals("merged_file.pdf")) {
                         ChapterModel subjectModel = new ChapterModel();
                         subjectModel.setmImageFile(subjects[i]);
                         subjectModel.setmImageFileName(subjects[i].getName());
@@ -267,7 +274,7 @@ public class ChapterActivity extends BaseActivity {
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
             }
-        }else if (requestCode == SELECT_PICTURE && resultCode == RESULT_OK) {
+        } else if (requestCode == SELECT_PICTURE && resultCode == RESULT_OK) {
             // Get the url of the image from data
             Uri selectedImageUri = data.getData();
             sendForCropper(selectedImageUri);
@@ -279,12 +286,56 @@ public class ChapterActivity extends BaseActivity {
                     e.printStackTrace();
                 }
             }*/
+        } else if (requestCode == SELECT_PDF && resultCode == RESULT_OK) {
+            // Get the url of the image from data
+            ClipData clipData = data.getClipData();
+            if (clipData != null){
+                // Multiple pdf selected.
+                for (int i = 0; i < clipData.getItemCount(); i++) {
+                    ClipData.Item item = clipData.getItemAt(i);
+                    createPdf(generateImageFromPdf(item.getUri()));
+                }
+            }else {
+                // Single pdf selected.
+                Uri selectedImageUri = data.getData();
+                Bitmap bitmap = generateImageFromPdf(selectedImageUri);
+                createPdf(bitmap);
+            }
+/*            if (null != selectedImageUri) {
+                try {
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
+                    createFileName(bitmap);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }*/
         }
     }
 
+    Bitmap generateImageFromPdf(Uri pdfUri) {
+        int pageNumber = 0;
+        PdfiumCore pdfiumCore = new PdfiumCore(this);
+        Bitmap bmp = null;
+        try {
+            //http://www.programcreek.com/java-api-examples/index.php?api=android.os.ParcelFileDescriptor
+            ParcelFileDescriptor fd = getContentResolver().openFileDescriptor(pdfUri, "r");
+            com.shockwave.pdfium.PdfDocument pdfDocument = pdfiumCore.newDocument(fd);
+            pdfiumCore.openPage(pdfDocument, pageNumber);
+            int width = pdfiumCore.getPageWidthPoint(pdfDocument, pageNumber);
+            int height = pdfiumCore.getPageHeightPoint(pdfDocument, pageNumber);
+            Log.e("Width_height", "" + width + " " + height);
+            bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            pdfiumCore.renderPageBitmap(pdfDocument, bmp, pageNumber, 0, 0, width, height);
+            pdfiumCore.closeDocument(pdfDocument); // important!
+        } catch (Exception e) {
+            //todo with exception
+        }
+        return bmp;
+    }
+
     private Bitmap getScaledBitmap(Bitmap bitmap) {
-        int nh = (int) ( bitmap.getHeight() * (512.0 / bitmap.getWidth()) );
-       return Bitmap.createScaledBitmap(bitmap, 512, nh, true);
+        int nh = (int) (bitmap.getHeight() * (512.0 / bitmap.getWidth()));
+        return Bitmap.createScaledBitmap(bitmap, 512, nh, true);
     }
 
     private void sendForCropper(Uri uri) {
@@ -374,13 +425,21 @@ public class ChapterActivity extends BaseActivity {
         startActivityForResult(Intent.createChooser(i, "Select Picture"), SELECT_PICTURE);
     }
 
-    private void createPdf(Bitmap bitmap){
+    public void dispatchSelectPdfIntent() {
+        Intent i = new Intent();
+        i.setType("application/pdf");
+        i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        i.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(i, "Select PDF"), SELECT_PDF);
+    }
+
+    private void createPdf(Bitmap bitmap) {
         WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         DisplayMetrics displaymetrics = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-        float hight = displaymetrics.heightPixels ;
-        float width = displaymetrics.widthPixels ;
+        float hight = displaymetrics.heightPixels;
+        float width = displaymetrics.widthPixels;
 
         int convertHighet = (int) hight, convertWidth = (int) width;
 
@@ -398,7 +457,7 @@ public class ChapterActivity extends BaseActivity {
         bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), true);
 
         paint.setColor(Color.BLUE);
-        canvas.drawBitmap(bitmap, 0, 0 , null);
+        canvas.drawBitmap(bitmap, 0, 0, null);
         document.finishPage(page);
         // write the document content
         /* String targetPdf = "/sdcard/test.pdf";*/
@@ -424,13 +483,21 @@ public class ChapterActivity extends BaseActivity {
     }
 
     public void deleteFile(ChapterModel chapterModel) {
-       File file = chapterModel.getmImageFile();
-        if(file != null){
-            if(file.exists()){
+        File file = chapterModel.getmImageFile();
+        if (file != null) {
+            if (file.exists()) {
                 file.delete();
             }
         }
         mContentList.remove(chapterModel);
         mCustomAdaptor.notifyDataSetChanged();
+    }
+
+    public void startScanner() {
+        int REQUEST_CODE = 99;
+        int preference = ScanConstants.OPEN_CAMERA;
+        Intent intent = new Intent(this, ScanActivity.class);
+        intent.putExtra(ScanConstants.OPEN_INTENT_PREFERENCE, preference);
+        startActivityForResult(intent, REQUEST_CODE);
     }
 }

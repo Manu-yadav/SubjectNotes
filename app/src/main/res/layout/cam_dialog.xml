@@ -58,6 +58,8 @@
             android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
             android:clickable="true"
+            android:drawableLeft="@drawable/icon_gallery"
+            android:drawablePadding="15dp"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:fontFamily="monospace"
@@ -66,8 +68,27 @@
             android:paddingRight="15dp"
             android:paddingBottom="10dp"
             android:text="Gallery"
-            android:drawableLeft="@drawable/icon_gallery"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tv_pdf"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_gallery"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:clickable="true"
+            android:drawableLeft="@drawable/icon_pdf"
             android:drawablePadding="15dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="monospace"
+            android:paddingLeft="15dp"
+            android:paddingTop="15dp"
+            android:paddingRight="15dp"
+            android:paddingBottom="10dp"
+            android:text="Document"
             android:textColor="@color/black"
             android:textSize="16sp" />
 
@@ -76,7 +97,7 @@
             android:id="@+id/divider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_below="@id/tv_gallery"
+            android:layout_below="@id/tv_pdf"
             android:layout_marginTop="10dp"
             android:background="@color/light_gray"
             android:visibility="visible" />
